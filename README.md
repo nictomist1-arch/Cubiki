@@ -160,6 +160,3 @@ Get-NetTCPConnection -LocalPort 3000 | Select-Object OwningProcess
 | `npm run build` | Сборка клиента в `dist/` |
 | `npm start` | Запуск продакшен-сервера |
 
-## Лицензия
-
-Проект для личного и учебного использования.
