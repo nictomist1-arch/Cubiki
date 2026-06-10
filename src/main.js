@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { io } from 'socket.io-client';
 import { SceneManager } from './core/SceneManager.js';
 import { LightManager } from './core/LightManager.js';
+import * as Auth from './auth.js';
 
 const MOVE_SPEED = 6;
 const BOUNDS = 9;
@@ -264,6 +265,9 @@ class CubikiGame {
     this.selectedShape = 'cube';
     this.roomCode = 'lobby';
     this.roomsRefreshTimer = null;
+    this.authMode = 'guest';
+    this.account = null;
+    this.ownedShapes = ['cube', 'sphere', 'diamond', 'cylinder'];
 
     this.joinScreen = document.getElementById('join-screen');
     this.hud = document.getElementById('hud');
@@ -289,11 +293,34 @@ class CubikiGame {
     this.applyCustomize = document.getElementById('apply-customize');
     this.mobileControls = document.getElementById('mobile-controls');
     this.networkUrls = document.getElementById('network-urls');
+    this.authGuestPanel = document.getElementById('auth-guest-panel');
+    this.authLoginPanel = document.getElementById('auth-login-panel');
+    this.authRegisterPanel = document.getElementById('auth-register-panel');
+    this.loginUsername = document.getElementById('login-username');
+    this.loginPassword = document.getElementById('login-password');
+    this.loginBtn = document.getElementById('login-btn');
+    this.loginError = document.getElementById('login-error');
+    this.registerUsername = document.getElementById('register-username');
+    this.registerPassword = document.getElementById('register-password');
+    this.registerDisplay = document.getElementById('register-display');
+    this.registerBtn = document.getElementById('register-btn');
+    this.registerError = document.getElementById('register-error');
+    this.accountBar = document.getElementById('account-bar');
+    this.accountName = document.getElementById('account-name');
+    this.accountCoins = document.getElementById('account-coins');
+    this.shopBtn = document.getElementById('shop-btn');
+    this.logoutBtn = document.getElementById('logout-btn');
+    this.shopModal = document.getElementById('shop-modal');
+    this.shopItemsEl = document.getElementById('shop-items');
+    this.shopCoinsEl = document.getElementById('shop-coins');
+    this.shopCloseBtn = document.getElementById('shop-close');
     this.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
     const urlRoom = new URLSearchParams(window.location.search).get('room');
     if (urlRoom) this.roomInput.value = urlRoom;
 
+    this.setupAuthUi();
+    this.restoreSession();
     this.loadNetworkUrls();
     this.loadRoomsList();
     this.roomsRefreshTimer = setInterval(() => this.loadRoomsList(), 3000);
@@ -313,6 +340,7 @@ class CubikiGame {
 
     document.querySelectorAll('.shape-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
+        if (btn.disabled) return;
         document.querySelectorAll('.shape-btn').forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
         this.selectedShape = btn.dataset.shape;
@@ -365,6 +393,141 @@ class CubikiGame {
   getRoomCode() {
     const raw = this.roomInput?.value ?? this.roomCode ?? '';
     return String(raw).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 16) || 'lobby';
+  }
+
+  setupAuthUi() {
+    document.querySelectorAll('.auth-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        this.authMode = tab.dataset.auth;
+        document.querySelectorAll('.auth-tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        this.authGuestPanel.classList.toggle('hidden', this.authMode !== 'guest');
+        this.authLoginPanel.classList.toggle('hidden', this.authMode !== 'login');
+        this.authRegisterPanel.classList.toggle('hidden', this.authMode !== 'register');
+      });
+    });
+
+    this.loginBtn.addEventListener('click', () => this.handleLogin());
+    this.registerBtn.addEventListener('click', () => this.handleRegister());
+    this.logoutBtn.addEventListener('click', () => this.handleLogout());
+    this.shopBtn.addEventListener('click', () => this.openShop());
+    this.shopCloseBtn.addEventListener('click', () => this.shopModal.classList.add('hidden'));
+  }
+
+  async restoreSession() {
+    const user = await Auth.fetchMe();
+    if (user) this.applyAccount(user);
+  }
+
+  applyAccount(user) {
+    this.account = user;
+    this.ownedShapes = user.ownedShapes || ['cube'];
+    this.authMode = 'account';
+    this.nameInput.value = user.displayName;
+    this.colorInput.value = `#${Number(user.profile.color).toString(16).padStart(6, '0')}`;
+    this.sizeInput.value = user.profile.size;
+    this.sizeValue.textContent = Number(user.profile.size).toFixed(1);
+    this.selectedShape = user.profile.shape;
+    document.querySelectorAll('.shape-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.shape === user.profile.shape);
+      btn.disabled = !this.ownedShapes.includes(btn.dataset.shape);
+      btn.classList.toggle('locked', !this.ownedShapes.includes(btn.dataset.shape));
+    });
+    this.accountBar.classList.remove('hidden');
+    this.accountName.textContent = user.displayName;
+    this.accountCoins.textContent = `🪙 ${user.coins}`;
+    this.authGuestPanel.classList.add('hidden');
+    this.authLoginPanel.classList.add('hidden');
+    this.authRegisterPanel.classList.add('hidden');
+    document.querySelectorAll('.auth-tab').forEach((t) => t.classList.add('hidden'));
+  }
+
+  clearAccountUi() {
+    this.account = null;
+    this.ownedShapes = ['cube', 'sphere', 'diamond', 'cylinder'];
+    this.accountBar.classList.add('hidden');
+    document.querySelectorAll('.auth-tab').forEach((t) => t.classList.remove('hidden'));
+    document.querySelectorAll('.shape-btn').forEach((btn) => {
+      btn.disabled = false;
+      btn.classList.remove('locked');
+    });
+    this.authMode = 'guest';
+    document.querySelector('.auth-tab[data-auth="guest"]')?.click();
+  }
+
+  showAuthError(el, message) {
+    el.textContent = message;
+    el.classList.remove('hidden');
+  }
+
+  async handleLogin() {
+    this.loginError.classList.add('hidden');
+    try {
+      const user = await Auth.login(this.loginUsername.value, this.loginPassword.value);
+      this.applyAccount(user);
+    } catch (err) {
+      this.showAuthError(this.loginError, err.message);
+    }
+  }
+
+  async handleRegister() {
+    this.registerError.classList.add('hidden');
+    try {
+      const user = await Auth.register(
+        this.registerUsername.value,
+        this.registerPassword.value,
+        this.registerDisplay.value,
+      );
+      this.applyAccount(user);
+    } catch (err) {
+      this.showAuthError(this.registerError, err.message);
+    }
+  }
+
+  handleLogout() {
+    Auth.logout();
+    this.clearAccountUi();
+  }
+
+  async openShop() {
+    if (!this.account) return;
+    try {
+      const data = await Auth.fetchShop();
+      this.account = data.user || this.account;
+      this.shopCoinsEl.textContent = this.account?.coins ?? 0;
+      this.accountCoins.textContent = `🪙 ${this.account.coins}`;
+      this.shopItemsEl.innerHTML = (data.items || [])
+        .map((item) => {
+          const owned = this.account.ownedShapes?.includes(item.value);
+          return `
+            <div class="shop-item">
+              <div>
+                <strong>${this.escapeHtml(item.name)}</strong>
+                <span class="shop-price">${item.price} 🪙</span>
+              </div>
+              <button type="button" class="buy-btn" data-id="${item.id}" ${owned ? 'disabled' : ''}>
+                ${owned ? 'Куплено' : 'Купить'}
+              </button>
+            </div>`;
+        })
+        .join('');
+      this.shopItemsEl.querySelectorAll('.buy-btn').forEach((btn) => {
+        btn.addEventListener('click', () => this.handleBuy(btn.dataset.id));
+      });
+      this.shopModal.classList.remove('hidden');
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  async handleBuy(itemId) {
+    try {
+      const { user } = await Auth.buyItem(itemId);
+      this.applyAccount(user);
+      this.openShop();
+    } catch (err) {
+      alert(err.message);
+    }
   }
 
   loadRoomsList() {
@@ -441,15 +604,22 @@ class CubikiGame {
   }
 
   getJoinProfile() {
+    const shape = this.account && !this.ownedShapes.includes(this.selectedShape)
+      ? 'cube'
+      : this.selectedShape;
     return {
-      name: this.nameInput.value.trim() || 'Игрок',
+      name: (this.account?.displayName || this.nameInput.value.trim()) || 'Игрок',
       color: hexToNumber(this.colorInput.value),
-      shape: this.selectedShape,
+      shape,
       size: Number(this.sizeInput.value),
     };
   }
 
   join() {
+    if (this.account && !this.ownedShapes.includes(this.selectedShape)) {
+      alert('Эта форма не куплена. Откройте магазин.');
+      return;
+    }
     this.profile = this.getJoinProfile();
     this.roomCode = this.getRoomCode();
     if (this.roomsRefreshTimer) {
@@ -574,11 +744,13 @@ class CubikiGame {
     const roomCode = this.getRoomCode();
     this.roomCode = roomCode;
 
+    const token = Auth.getToken();
     this.socket = io(window.location.origin, {
       transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionAttempts: 15,
       query: { room: roomCode },
+      auth: { token: token || '' },
     });
 
     this.socket.on('connect', () => {
@@ -600,9 +772,29 @@ class CubikiGame {
       this.statusEl.className = 'disconnected';
     });
 
+    this.socket.on('accountUpdated', (data) => {
+      if (this.account) {
+        this.account.coins = data.coins;
+        this.account.ownedShapes = data.ownedShapes;
+        this.ownedShapes = data.ownedShapes;
+        this.accountCoins.textContent = `🪙 ${data.coins}`;
+      }
+    });
+
+    this.socket.on('profileError', ({ error }) => {
+      this.addChatMessage({ system: true, text: error });
+    });
+
     this.socket.on('init', (data) => {
       const { id, players = {} } = data;
       const roomId = data.roomId || players[id]?.roomId || this.roomCode || 'lobby';
+
+      if (data.account && this.account) {
+        this.account.coins = data.account.coins;
+        this.account.ownedShapes = data.account.ownedShapes;
+        this.ownedShapes = data.account.ownedShapes;
+        this.accountCoins.textContent = `🪙 ${data.account.coins}`;
+      }
 
       this.myId = id;
       this.roomCode = roomId;

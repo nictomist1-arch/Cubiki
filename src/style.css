@@ -95,6 +95,149 @@ canvas {
   opacity: 0.9;
 }
 
+.auth-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.auth-tab.active {
+  border-color: #4ecdc4;
+  color: #fff;
+  background: rgba(78, 205, 196, 0.15);
+}
+
+.secondary-btn {
+  width: 100%;
+  padding: 0.7rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.auth-error {
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+#account-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  background: rgba(78, 205, 196, 0.12);
+  border: 1px solid rgba(78, 205, 196, 0.25);
+  font-size: 0.85rem;
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  color: #4ecdc4;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.shape-btn.locked {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 16px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: #1a1030;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.modal-card h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.modal-coins {
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.shop-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.shop-price {
+  display: block;
+  font-size: 0.8rem;
+  color: #ffe66d;
+}
+
+.buy-btn {
+  padding: 0.35rem 0.7rem;
+  border: none;
+  border-radius: 6px;
+  background: #4ecdc4;
+  color: #0a0618;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.buy-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .hint {
   margin-top: 1.25rem !important;
   font-size: 0.8rem !important;

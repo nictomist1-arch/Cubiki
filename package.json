@@ -4,12 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"node server.js\" \"vite\"",
+    "dev": "concurrently \"node server/index.js\" \"vite\"",
     "build": "vite build",
-    "start": "node server.js"
+    "start": "node server/index.js",
+    "postinstall": "node -e \"console.log('Cubiki: зависимости установлены')\""
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^16.6.1",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.16.1",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "three": "^0.184.0"

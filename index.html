@@ -12,7 +12,38 @@
     <div class="join-card">
       <h1>Cubiki</h1>
       <p>Мультиплеерная игра с кубиками в реальном времени</p>
-      <input id="player-name" type="text" placeholder="Ваше имя" maxlength="20" autocomplete="off">
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" data-auth="guest">Гость</button>
+        <button type="button" class="auth-tab" data-auth="login">Вход</button>
+        <button type="button" class="auth-tab" data-auth="register">Регистрация</button>
+      </div>
+
+      <div id="auth-guest-panel">
+        <input id="player-name" type="text" placeholder="Ваше имя" maxlength="20" autocomplete="off">
+      </div>
+
+      <div id="auth-login-panel" class="hidden">
+        <input id="login-username" type="text" placeholder="Логин" maxlength="20" autocomplete="username">
+        <input id="login-password" type="password" placeholder="Пароль" autocomplete="current-password">
+        <button type="button" id="login-btn" class="secondary-btn">Войти в аккаунт</button>
+        <p id="login-error" class="auth-error hidden"></p>
+      </div>
+
+      <div id="auth-register-panel" class="hidden">
+        <input id="register-username" type="text" placeholder="Логин (латиница)" maxlength="20" autocomplete="username">
+        <input id="register-password" type="password" placeholder="Пароль (мин. 4)" autocomplete="new-password">
+        <input id="register-display" type="text" placeholder="Имя в игре" maxlength="20">
+        <button type="button" id="register-btn" class="secondary-btn">Создать аккаунт</button>
+        <p id="register-error" class="auth-error hidden"></p>
+      </div>
+
+      <div id="account-bar" class="hidden">
+        <span id="account-name"></span>
+        <span id="account-coins">🪙 0</span>
+        <button type="button" id="shop-btn" class="link-btn">Магазин</button>
+        <button type="button" id="logout-btn" class="link-btn">Выйти</button>
+      </div>
 
       <div class="customize-section">
         <label class="customize-label">Комната</label>
@@ -50,6 +81,15 @@
 
       <button id="join-btn">Войти в игру</button>
       <div id="network-urls" class="hint"></div>
+    </div>
+
+    <div id="shop-modal" class="modal hidden">
+      <div class="modal-card">
+        <h2>Магазин скинов</h2>
+        <p class="modal-coins">Ваши монеты: <span id="shop-coins">0</span> 🪙</p>
+        <div id="shop-items" class="shop-items"></div>
+        <button type="button" id="shop-close" class="secondary-btn">Закрыть</button>
+      </div>
     </div>
   </div>
 

@@ -1,0 +1,9 @@
+export const COLORS = [0xff6b6b, 0x4ecdc4, 0xffe66d, 0xa855f7, 0x3b82f6, 0xf97316, 0x22c55e, 0xec4899];
+export const BOUNDS = 9;
+export const PUSH_RADIUS = 4;
+export const PUSH_STRENGTH = 4;
+export const PUSH_COOLDOWN_MS = 600;
+export const SESSION_COIN_REWARD = 10;
+export const PUSH_COIN_REWARD = 2;
+export const DEFAULT_OWNED_SHAPES = ['cube'];
+export const ALL_SHAPES = ['cube', 'sphere', 'diamond', 'cylinder'];
